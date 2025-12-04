@@ -22,5 +22,5 @@ REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = 0
 
 # GCP Pub/Sub
-GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "auth-service-project")
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "bookhub-service-project")
 
