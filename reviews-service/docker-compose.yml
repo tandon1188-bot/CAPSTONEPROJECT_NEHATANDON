@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  reviews-db:
+    image: postgres:15
+    container_name: reviews-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - reviews-data:/var/lib/postgresql/data
+
+  reviews-service:
+    build: .
+    container_name: reviews-service
+    depends_on:
+      - reviews-db
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+
+volumes:
+  reviews-data:

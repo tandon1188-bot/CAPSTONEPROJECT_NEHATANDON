@@ -1,0 +1,190 @@
+{
+	"info": {
+		"_postman_id": "06550b71-16a3-4dfe-b119-0868ebbaea07",
+		"name": "Review Service API",
+		"description": "Postman Collection for OnlineBookStore Review Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "5914250"
+	},
+	"item": [
+		{
+			"name": "Create Review",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"book_id\": \"660e8400-e29b-41d4-a716-446655440001\",\n  \"rating\": 5,\n  \"title\": \"Excellent book for developers\",\n  \"comment\": \"This book changed how I write code. Highly recommended for all software developers.\"\n}"
+				},
+				"url": "http://localhost:8004/api/v1/reviews"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Reviews for Book",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8004/api/v1/reviews/book/{{book_id}}?page=1&limit=20&rating=5&sort_by=created_at&sort_order=desc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8004",
+					"path": [
+						"api",
+						"v1",
+						"reviews",
+						"book",
+						"{{book_id}}"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						},
+						{
+							"key": "rating",
+							"value": "5"
+						},
+						{
+							"key": "sort_by",
+							"value": "created_at"
+						},
+						{
+							"key": "sort_order",
+							"value": "desc"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Review Details",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8004/api/v1/reviews/{{review_id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Review",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"rating\": 4,\n  \"title\": \"Great book with minor issues\",\n  \"comment\": \"Updated my review after re-reading...\"\n}"
+				},
+				"url": "http://localhost:8004/api/v1/reviews/{{review_id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Review",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8004/api/v1/reviews/{{review_id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Current User Reviews",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8004/api/v1/reviews/user/me?page=1&limit=20",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8004",
+					"path": [
+						"api",
+						"v1",
+						"reviews",
+						"user",
+						"me"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Review Summary for Book",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "http://localhost:8004/api/v1/reviews/book/{{book_id}}/summary"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "Bearer mock-token-here"
+		},
+		{
+			"key": "review_id",
+			"value": "aa0e8400-e29b-41d4-a716-446655440006"
+		},
+		{
+			"key": "book_id",
+			"value": "660e8400-e29b-41d4-a716-446655440001"
+		}
+	]
+}
