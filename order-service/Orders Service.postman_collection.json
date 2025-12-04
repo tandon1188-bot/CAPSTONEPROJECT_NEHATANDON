@@ -1,0 +1,165 @@
+{
+	"info": {
+		"_postman_id": "68004207-a390-4638-8766-11ae52fdd764",
+		"name": "Orders Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "5914250"
+	},
+	"item": [
+		{
+			"name": "Create Order",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"items\": [\n    {\"book_id\": \"660e8400-e29b-41d4-a716-446655440001\", \"quantity\": 2},\n    {\"book_id\": \"660e8400-e29b-41d4-a716-446655440002\", \"quantity\": 1}\n  ]\n}"
+				},
+				"url": "http://localhost:8003/api/v1/orders"
+			},
+			"response": []
+		},
+		{
+			"name": "List Orders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8003/api/v1/orders?page=1&limit=20",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8003",
+					"path": [
+						"api",
+						"v1",
+						"orders"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order Details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8003/api/v1/orders/{{order_id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Order Status",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"status\": \"processing\" }"
+				},
+				"url": "http://localhost:8003/api/v1/orders/{{order_id}}/status"
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Order",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8003/api/v1/orders/{{order_id}}"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Order Stats",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer dummy_token",
+						"type": "text"
+					}
+				],
+				"url": "http://localhost:8003/api/v1/orders/stats"
+			},
+			"response": []
+		},
+		{
+			"name": "testModel",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "# app/crud.py\r\n\r\nfrom fastapi import HTTPException\r\nfrom sqlalchemy import select, func\r\nfrom sqlalchemy.ext.asyncio import AsyncSession\r\nfrom sqlalchemy.orm import selectinload\r\nfrom uuid import UUID, uuid4\r\nfrom datetime import datetime\r\n\r\nfrom app.models import Order, OrderItem\r\nfrom app.schemas import OrderCreate\r\n\r\n\r\n# ------------------------------------------------------------\r\n# Helper: Serialize SQLAlchemy Order → clean dictionary\r\n# ------------------------------------------------------------\r\ndef serialize_order(order: Order):\r\n    return {\r\n        \"id\": order.id,\r\n        \"user_id\": order.user_id,\r\n        \"status\": order.status,\r\n        \"total_amount\": float(order.total_amount),\r\n        \"created_at\": order.created_at,\r\n        \"updated_at\": order.updated_at,\r\n        \"items\": [\r\n            {\r\n                \"id\": item.id,\r\n                \"book_id\": item.book_id,\r\n                \"book_title\": item.book_title,\r\n                \"quantity\": item.quantity,\r\n                \"price_at_purchase\": float(item.price_at_purchase),\r\n                \"subtotal\": float(item.subtotal),\r\n            }\r\n            for item in order.items\r\n        ],\r\n    }\r\n\r\n\r\n# ------------------------------------------------------------\r\n# CREATE ORDER\r\n# ------------------------------------------------------------\r\nasync def create_order(db: AsyncSession, user_id: str, order_data: OrderCreate):\r\n\r\n    # Convert user_id to UUID\r\n    try:\r\n        user_uuid = UUID(user_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid user_id format\")\r\n\r\n    items = []\r\n    total_amount = 0\r\n\r\n    for item in order_data.items:\r\n\r\n        try:\r\n            book_uuid = UUID(str(item.book_id))\r\n        except:\r\n            raise HTTPException(status_code=400, detail=f\"Invalid book_id: {item.book_id}\")\r\n\r\n        price = 42.99  # TODO: replace with books-service\r\n        subtotal = price * item.quantity\r\n        total_amount += subtotal\r\n\r\n        items.append(\r\n            OrderItem(\r\n                id=uuid4(),\r\n                book_id=book_uuid,\r\n                book_title=\"Demo Book\",\r\n                quantity=item.quantity,\r\n                price_at_purchase=price,\r\n                subtotal=subtotal,\r\n            )\r\n        )\r\n\r\n    order = Order(\r\n        id=uuid4(),\r\n        user_id=user_uuid,\r\n        status=\"pending\",\r\n        total_amount=total_amount,\r\n        items=items,\r\n    )\r\n\r\n    db.add(order)\r\n\r\n    try:\r\n        await db.commit()\r\n        await db.refresh(order)\r\n    except Exception as e:\r\n        await db.rollback()\r\n        raise HTTPException(status_code=500, detail=str(e))\r\n\r\n    # Re-fetch to ensure items are eager-loaded\r\n    result = await db.execute(\r\n        select(Order).options(selectinload(Order.items)).where(Order.id == order.id)\r\n    )\r\n    order = result.scalar_one()\r\n\r\n    return serialize_order(order)\r\n\r\n\r\n# ------------------------------------------------------------\r\n# LIST ORDERS (pagination)\r\n# ------------------------------------------------------------\r\nasync def get_orders(db: AsyncSession, user_id: str, status: str, page: int, limit: int):\r\n\r\n    try:\r\n        user_uuid = UUID(user_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid user_id\")\r\n\r\n    base_query = select(Order).where(Order.user_id == user_uuid)\r\n\r\n    if status:\r\n        base_query = base_query.where(Order.status == status)\r\n\r\n    # Count total\r\n    total_query = select(func.count()).select_from(base_query.subquery())\r\n    total = (await db.execute(total_query)).scalar() or 0\r\n\r\n    # Pagination\r\n    offset = (page - 1) * limit\r\n\r\n    result = await db.execute(\r\n        base_query\r\n        .options(selectinload(Order.items))\r\n        .offset(offset)\r\n        .limit(limit)\r\n    )\r\n\r\n    orders = result.scalars().unique().all()\r\n\r\n    return {\r\n        \"items\": [serialize_order(o) for o in orders],\r\n        \"total\": total,\r\n        \"page\": page,\r\n        \"limit\": limit,\r\n        \"pages\": (total + limit - 1) // limit,\r\n    }\r\n\r\n\r\n# ------------------------------------------------------------\r\n# GET ORDER BY ID\r\n# ------------------------------------------------------------\r\nasync def get_order(db: AsyncSession, user_id: str, order_id: str):\r\n\r\n    try:\r\n        order_uuid = UUID(order_id)\r\n        user_uuid = UUID(user_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid UUID\")\r\n\r\n    result = await db.execute(\r\n        select(Order)\r\n        .options(selectinload(Order.items))\r\n        .where(Order.id == order_uuid, Order.user_id == user_uuid)\r\n    )\r\n\r\n    order = result.scalar_one_or_none()\r\n    if not order:\r\n        raise HTTPException(status_code=404, detail=\"Order not found\")\r\n\r\n    return serialize_order(order)\r\n\r\n\r\n# ------------------------------------------------------------\r\n# UPDATE ORDER STATUS\r\n# ------------------------------------------------------------\r\nasync def update_order_status(db: AsyncSession, order_id: str, new_status: str):\r\n\r\n    try:\r\n        order_uuid = UUID(order_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid order_id\")\r\n\r\n    result = await db.execute(select(Order).where(Order.id == order_uuid))\r\n    order = result.scalar_one_or_none()\r\n\r\n    if not order:\r\n        raise HTTPException(status_code=404, detail=\"Order not found\")\r\n\r\n    order.status = new_status\r\n    order.updated_at = datetime.utcnow()\r\n\r\n    await db.commit()\r\n    await db.refresh(order)\r\n\r\n    # Re-fetch for items\r\n    result = await db.execute(\r\n        select(Order).options(selectinload(Order.items)).where(Order.id == order.id)\r\n    )\r\n    order = result.scalar_one()\r\n\r\n    return serialize_order(order)\r\n\r\n\r\n# ------------------------------------------------------------\r\n# DELETE ORDER\r\n# ------------------------------------------------------------\r\nasync def delete_order(db: AsyncSession, order_id: str):\r\n\r\n    try:\r\n        order_uuid = UUID(order_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid order_id\")\r\n\r\n    result = await db.execute(select(Order).where(Order.id == order_uuid))\r\n    order = result.scalar_one_or_none()\r\n\r\n    if not order:\r\n        raise HTTPException(status_code=404, detail=\"Order not found\")\r\n\r\n    if order.status != \"pending\":\r\n        raise HTTPException(\r\n            status_code=400,\r\n            detail=\"Cannot cancel order (already processing/completed)\",\r\n        )\r\n\r\n    await db.delete(order)\r\n    await db.commit()\r\n\r\n    return serialize_order(order)\r\n\r\n\r\n# ------------------------------------------------------------\r\n# STATS\r\n# ------------------------------------------------------------\r\nasync def get_order_stats(db: AsyncSession, user_id: str):\r\n\r\n    try:\r\n        user_uuid = UUID(user_id)\r\n    except:\r\n        raise HTTPException(status_code=400, detail=\"Invalid user_id\")\r\n\r\n    # Total orders & total spent\r\n    result = await db.execute(\r\n        select(\r\n            func.count(Order.id),\r\n            func.coalesce(func.sum(Order.total_amount), 0)\r\n        ).where(Order.user_id == user_uuid)\r\n    )\r\n\r\n    total_orders, total_spent = result.first()\r\n\r\n    # Orders grouped by status\r\n    group_res = await db.execute(\r\n        select(Order.status, func.count(Order.id))\r\n        .where(Order.user_id == user_uuid)\r\n        .group_by(Order.status)\r\n    )\r\n\r\n    orders_by_status = {row[0]: row[1] for row in group_res.fetchall()}\r\n\r\n    # Total books purchased\r\n    books_res = await db.execute(\r\n        select(func.coalesce(func.sum(OrderItem.quantity), 0))\r\n        .join(Order)\r\n        .where(Order.user_id == user_uuid)\r\n    )\r\n\r\n    total_books = books_res.scalar() or 0\r\n\r\n    return {\r\n        \"total_orders\": total_orders,\r\n        \"total_spent\": float(total_spent),\r\n        \"orders_by_status\": orders_by_status,\r\n        \"total_books_purchased\": total_books,\r\n    }\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": ""
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "order_id",
+			"value": "replace-with-real-order-id"
+		}
+	]
+}

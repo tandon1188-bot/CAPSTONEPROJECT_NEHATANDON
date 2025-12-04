@@ -1,0 +1,23 @@
+services:
+  orders-db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5435:5432"
+    volumes:
+      - orders-data:/var/lib/postgresql/data
+
+  orders-service:
+    build: .
+    depends_on:
+      - orders-db
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+
+volumes:
+  orders-data:
